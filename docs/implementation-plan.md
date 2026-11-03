@@ -46,4 +46,4 @@ Files: README.md, LICENSE, docs/project-state.md, local environment file.
 - [x] Document exact setup, free access, sample versus real behavior, and unverified external checks.
 - [x] Verify unit/integration tests, types, production build and browser flow; open the app here.
 
-Live provider checkpoint — 3 November 2026: Gemini interpretation, PayPal sandbox order creation, Personal buyer approval, completed $74.00 USD capture and matching saved receipt are verified. See docs/evidence.md. Public repository validation, user feedback, video recording/upload and final submission remain delivery work.
+Live provider checkpoint — 3 November 2026: Gemini interpretation, PayPal sandbox order creation, Personal buyer approval, completed $74.00 USD capture and matching saved receipt are verified. See docs/evidence.md. The public repository passed fresh-clone validation and the 95-second captioned video is public on YouTube. User feedback and final Devpost entry remain delivery work.

@@ -4,6 +4,8 @@ Describe what you need. Review a basket with an exact total. Approve a PayPal sa
 
 ClearCart is a focused PayPal AI hackathon project for shoppers who want to express several requirements and see the full cost before checkout. Its owned sample catalog keeps the demonstration small enough to inspect: the AI interprets preferences, while ordinary server code controls prices, materials, budget limits and payment truth.
 
+[Watch the 95-second captioned demo on YouTube](https://www.youtube.com/watch?v=slJc7aeOWz8). Actual request and verification footage, screenshots and omitted login/idle intervals are labeled. The demo uses genuine Gemini and PayPal sandbox integrations with fictional products and funds.
+
 ## Run locally
 
 Judges: start with [the complete judging guide](docs/judging.md). It includes a fresh-clone setup, expected shopping results, free real-provider setup and the distinction between sample checkout and a genuine sandbox capture.
@@ -81,7 +83,7 @@ Genuine Gemini interpretation and the buyer-approved sandbox receipt are verifie
 
 ## Hackathon delivery
 
-The [official rules](https://paypalaihackathon.devpost.com/rules), rechecked on 3 November 2026, set the submission deadline at **12 November 2026, 21:00 CET**, with an internal target of **11 November**. Public hosting is optional: complete repository setup/run instructions or a hosted working demo satisfy the functional-access requirement. This repository supplies the local-build route. A public YouTube demo under three minutes is still required. Keep free working access until **15 December 2026, 17:00 CET**. No hackathon entry or final submission has been performed automatically.
+The [official rules](https://paypalaihackathon.devpost.com/rules), rechecked on 3 November 2026, set the submission deadline at **12 November 2026, 21:00 CET**, with an internal target of **11 November**. Public hosting is optional: complete repository setup/run instructions or a hosted working demo satisfy the functional-access requirement. This repository supplies the local-build route, verified from a fresh public clone. The [public YouTube demo](https://www.youtube.com/watch?v=slJc7aeOWz8) is 95 seconds long. Keep free working access until **15 December 2026, 17:00 CET**. Final hackathon submission remains pending.
 
 ## Team and credits
 

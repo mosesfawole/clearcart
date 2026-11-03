@@ -18,6 +18,12 @@ The original merchant test failed with `PAYEE_ACCOUNT_LOCKED_OR_CLOSED` and stay
 
 The screenshot records the completed app state. A screenshot and controlled tests do not replace the hackathon's required demonstration video. A fresh run will generate different provider and receipt identifiers.
 
+## Published demo and fresh recording run
+
+[The public captioned demo](https://www.youtube.com/watch?v=slJc7aeOWz8) is 95 seconds long. It includes actual Gemini-request and payment-verification footage, explicitly labeled screenshots and an earlier approval reference. Test-login entry and long idle intervals are omitted; no single continuous recording is claimed.
+
+The fresh recording run completed a second $74.00 USD sandbox checkout: PayPal order `37W414537L717804D`, capture `5EJ19003FE886761E`, receipt `9b277cb9-c7f0-4be1-970d-1bd9d306f25a`. Read-only ledger assertions again confirmed paid sandbox state, matching identities/amount/currency and exactly one record for this capture. No real money moved.
+
 <details>
 <summary>Show the verified sandbox receipt</summary>
 

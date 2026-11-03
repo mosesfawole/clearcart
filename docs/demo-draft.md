@@ -1,5 +1,7 @@
 # Demo draft — 2 minutes 40 seconds
 
+This was the original narration plan. The completed [public captioned demo](https://www.youtube.com/watch?v=slJc7aeOWz8) is 95 seconds, with actual recorded footage and clearly labeled screenshots/cuts. It has no narration or music.
+
 Record only after genuine Gemini and PayPal sandbox calls work. A sample-only video is a development preview, not the qualifying integration demo. Verify exact submission requirements before upload.
 
 | Time | Screen/action | Narration |
