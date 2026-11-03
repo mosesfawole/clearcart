@@ -25,5 +25,5 @@ Sandbox access unavailable (medium likelihood/high impact): check early, keep lo
 
 Success evidence: real sandbox order ID and verified capture; one receipt after repeated callback; rejection of forged/mismatched payment or invalid product IDs; a basket under the exact complete budget; keyboard-completable flow; measured task time and short user feedback if collected. No claimed usability improvements until measured.
 
-## Project State
-Selected: ClearCart. Design: small owned catalog, sample data, one USD sandbox flow. Credentials: not yet available; account tabs requested. Next: implement/test sample slice, then verify real provider flows when credentials are ready. Agentware remains a later separate build.
+## Project State — updated 3 November 2026
+Selected: ClearCart. The small owned catalog and one USD sandbox flow are implemented. Genuine Gemini interpretation and a buyer-approved $74.00 USD PayPal sandbox capture with a matching saved receipt are verified. Complete free local judging instructions and evidence are in docs/judging.md and docs/evidence.md. Next: public repository verification, user feedback and genuine demo recording. The build-session dates above are the original plan; provider validation finished earlier, on 3 November.

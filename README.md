@@ -6,10 +6,12 @@ ClearCart is a focused PayPal AI hackathon project for shoppers who want to expr
 
 ## Run locally
 
+Judges: start with [the complete judging guide](docs/judging.md). It includes a fresh-clone setup, expected shopping results, free real-provider setup and the distinction between sample checkout and a genuine sandbox capture.
+
 Requires Node.js **24 or later** and npm. No paid hosting, model subscription or payment account is required to run sample mode.
 
 ```powershell
-npm install
+npm ci
 if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }
 npm run dev
 ```
@@ -31,7 +33,7 @@ Follow [provider setup](docs/provider-setup.md). Fill in `.env.local` locally an
 
 | Variable | Use |
 |---|---|
-| `APP_URL` | App origin, default `http://127.0.0.1:3000`; must match the browser URL for PayPal return navigation |
+| `APP_URL` | Set explicitly to the browser origin; `.env.example` uses `http://127.0.0.1:3000` for PayPal return navigation |
 | `GEMINI_API_KEY` | Enables real intent interpretation; blank means labeled keyword sample mode |
 | `GEMINI_MODEL` | Default `gemini-3.5-flash-lite`; verify account free quota in AI Studio |
 | `PAYPAL_CLIENT_ID` | Sandbox app Client ID |
@@ -51,7 +53,7 @@ The PayPal endpoint is permanently fixed to sandbox. Create a sandbox merchant a
 | Payment without credentials | Explicit simulated approval and synthetic payment evidence; never a PayPal transaction |
 | Quotes and receipts | Real local SQLite persistence and browser-session ownership |
 
-External integration success must be demonstrated with the entrant's own free accounts. Automated tests use controlled network responses; they do not prove live account access. A sample-only recording does not satisfy the hackathon's meaningful AI/PayPal integration requirement.
+Genuine Gemini interpretation and a buyer-approved $74.00 USD PayPal sandbox capture were verified on 3 November 2026. See [the integration evidence](docs/evidence.md). Automated tests use controlled network responses; they do not prove live account access. A sample-only recording does not satisfy the hackathon's meaningful AI/PayPal integration requirement.
 
 ## Architecture
 
@@ -75,11 +77,11 @@ Only server-issued quote IDs can start checkout. Prices, payment status, return 
 
 The test suite covers complete basket totals, constraint violations, malformed inputs, payment verification, session ownership and repeated callbacks. Types, production build and a real browser sample flow are separate checks. See [project state](docs/project-state.md) for the current verification record and external checks still outstanding.
 
-No measured usability benefit is claimed yet. The next evidence is a timed shopping task with several users, a genuine Gemini interpretation and a buyer-approved PayPal sandbox receipt. The longer roadmap is broader catalogs, merchant-configured shipping and currencies, accessibility user feedback and reliable deployed judging access.
+Genuine Gemini interpretation and the buyer-approved sandbox receipt are verified. No measured usability benefit is claimed yet; a timed shopping task with several users is still outstanding. The longer roadmap is broader catalogs, merchant-configured shipping and currencies, accessibility user feedback and reliable deployed judging access.
 
 ## Hackathon delivery
 
-The prior official intake gives the submission deadline as **12 November 2026, 21:00 CET**, with an internal target of **11 November**. Recheck [official rules](https://paypalaihackathon.devpost.com/rules) before submission. The public repository needs an explicit license, complete run instructions, tool disclosure and a public YouTube demo under three minutes. Keep free working access through judging, previously published as **1–15 December**. No entry or submission has been performed automatically.
+The [official rules](https://paypalaihackathon.devpost.com/rules), rechecked on 3 November 2026, set the submission deadline at **12 November 2026, 21:00 CET**, with an internal target of **11 November**. Public hosting is optional: complete repository setup/run instructions or a hosted working demo satisfy the functional-access requirement. This repository supplies the local-build route. A public YouTube demo under three minutes is still required. Keep free working access until **15 December 2026, 17:00 CET**. No hackathon entry or final submission has been performed automatically.
 
 ## Team and credits
 
