@@ -235,7 +235,8 @@ svg { flex-shrink: 0; }
 .empty-basket > p, .empty-basket > .empty-reassurance, .basket-bottom,
 .quote-expiry, .line-copy > small, .collection-bottom-note,
 .how-section > div > p, .how-steps p, .site-footer p, .site-footer > span,
-.receipt-details dt, .receipt-details dd { color: #5e7155; }
+.receipt-details dt, .receipt-details dd, .receipt-success p, .totals dt,
+.approval-dialog > p, .dialog-total > span, .dialog-total small { color: #5e7155; }
 
 @media (min-width: 1440px) {
   .hero { gap: 90px; }
