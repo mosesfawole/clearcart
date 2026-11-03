@@ -97,6 +97,37 @@ describe('HTTP boundaries', () => {
     expect(() => assertSameOrigin(new Request('http://localhost/api', { method: 'POST', headers: { origin: 'http://evil.test' } }))).toThrow(/origin/i);
     expect(() => assertSameOrigin(new Request('http://localhost/api', { method: 'POST', headers: { origin: 'http://localhost' } }))).not.toThrow();
   });
+  it('uses the public Host when Next rewrites the request URL to internal localhost', () => {
+    const request = new Request('http://localhost:3000/api/recommend', {
+      method: 'POST', headers: { host: '127.0.0.1:3000', origin: 'http://127.0.0.1:3000' },
+    });
+    expect(() => assertSameOrigin(request)).not.toThrow();
+  });
+  it.each(['http://localhost:3000', 'http://evil.test', 'http://127.0.0.1:3001', 'https://127.0.0.1:3000'])('rejects an Origin that differs from the exact public host and protocol: %s', (origin) => {
+    expect(() => assertSameOrigin(new Request('http://localhost:3000/api/recommend', {
+      method: 'POST', headers: { host: '127.0.0.1:3000', origin },
+    }))).toThrow(/origin/i);
+  });
+  it('requires a POST Origin even when the public Host is supplied', () => {
+    expect(() => assertSameOrigin(new Request('http://localhost:3000/api/recommend', {
+      method: 'POST', headers: { host: '127.0.0.1:3000' },
+    }))).toThrow(/origin/i);
+  });
+  it('uses the request protocol for HTTPS and supports IPv6 public hosts', () => {
+    expect(() => assertSameOrigin(new Request('https://localhost:3000/api/recommend', {
+      method: 'POST', headers: { host: '[::1]:3000', origin: 'https://[::1]:3000' },
+    }))).not.toThrow();
+  });
+  it.each(['127.0.0.1:3000/path', 'user@127.0.0.1:3000', '127.0.0.1:3000,evil.test', '127.0.0.1:3000?query', ''])('rejects malformed Host authorities: %s', (host) => {
+    expect(() => assertSameOrigin(new Request('http://localhost:3000/api/recommend', {
+      method: 'POST', headers: { host, origin: 'http://localhost:3000' },
+    }))).toThrow(/origin/i);
+  });
+  it('does not use untrusted forwarded host or protocol headers to accept a foreign origin', () => {
+    expect(() => assertSameOrigin(new Request('http://localhost:3000/api/recommend', {
+      method: 'POST', headers: { host: '127.0.0.1:3000', origin: 'https://evil.test', 'x-forwarded-host': 'evil.test', 'x-forwarded-proto': 'https' },
+    }))).toThrow(/origin/i);
+  });
   it('bounds request bodies and rejects malformed JSON', async () => {
     expect(await readBody(new Request('http://localhost/', { method: 'POST', body: '{"text":"bag"}' }))).toEqual({ text: 'bag' });
     await expect(readBody(new Request('http://localhost/', { method: 'POST', body: 'x'.repeat(4097) }))).rejects.toThrow(/large|4096/i);

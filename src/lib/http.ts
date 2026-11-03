@@ -16,7 +16,20 @@ export function readSession(request: Request): string | null {
 
 export function assertSameOrigin(request: Request): void {
   const origin = request.headers.get('origin');
-  if ((!origin && request.method === 'POST') || (origin && origin !== new URL(request.url).origin)) {
+  const requestUrl = new URL(request.url);
+  const host = request.headers.get('host');
+  let expectedOrigin = requestUrl.origin;
+  if (host !== null) {
+    // Next may expose an internal localhost URL while preserving the public Host.
+    // Host is one authority, never a URL or a list; forwarded headers are not trusted.
+    try {
+      if (!host || /[\s,/\\@?#%]/.test(host) || !['http:', 'https:'].includes(requestUrl.protocol)) throw new Error();
+      const publicUrl = new URL(`${requestUrl.protocol}//${host}`);
+      if (!publicUrl.hostname) throw new Error();
+      expectedOrigin = publicUrl.origin;
+    } catch { throw new UserError('Request origin is not allowed. Reload ClearCart and try again.'); }
+  }
+  if ((!origin && request.method === 'POST') || (origin && origin !== expectedOrigin)) {
     throw new UserError('Request origin is not allowed. Reload ClearCart and try again.');
   }
 }
