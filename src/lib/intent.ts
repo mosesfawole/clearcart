@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { catalog, type Category } from './catalog';
 import type { Constraints, Intent } from './basket';
 import { ConfigurationError, UserError } from './http';
+import { findShoppingPreset } from './shopping-presets';
 
 export type AiMode = 'sample' | 'gemini';
 export function aiMode(): AiMode { return process.env.GEMINI_API_KEY?.trim() ? 'gemini' : 'sample'; }
@@ -84,6 +85,16 @@ export async function interpretRequest(text: string): Promise<Intent> {
     const textParts = candidate.content.parts.filter((part: { text?: unknown; thought?: boolean }) => part.thought !== true && typeof part.text === 'string');
     if (!textParts.length) throw new Error();
     const intent = intentSchema.parse(JSON.parse(textParts.map((part: { text: string }) => part.text).join('')));
+    // Only the exact advertised starter tasks have a server-owned category scope.
+    // Custom requests retain Gemini's interpretation, including additional categories.
+    const preset = findShoppingPreset(text);
+    if (preset) {
+      return {
+        ...intent,
+        categories: [...preset.categories],
+        preferredProductIds: intent.preferredProductIds.filter((id) => catalog.some((product) => product.id === id && preset.categories.includes(product.category))),
+      };
+    }
     return { ...intent, categories: [...new Set(intent.categories)] };
   } catch { throw new UserError('Gemini returned an incomplete or invalid interpretation. Try a clearer request or try again later.'); }
 }

@@ -73,6 +73,8 @@ flowchart LR
 
 Next.js/React renders the accessible storefront and hosts server routes. TypeScript/Zod constrain inputs and model output. Node's built-in SQLite stores immutable quote/order snapshots. Direct HTTP adapters keep Gemini and PayPal dependencies small.
 
+The three built-in starter tasks have shared, server-owned category lists. A successful Gemini response still supplies product preferences, but cannot add an unsolicited required category to those exact starters. Custom requests keep Gemini's category interpretation. Provider failures remain errors, and every basket still passes the same catalog, material, stock and complete-budget checks.
+
 Only server-issued quote IDs can start checkout. Prices, payment status, return URLs and receipts are never accepted from browser input. Quotes expire after 15 minutes. HTTP-only random sessions bind checkout to the shopper. Stable, persisted PayPal request UUIDs and serialized local calls let repeated callbacks reuse the same receipt. A `COMPLETED` order alone is insufficient: the completed capture must match the saved identity, USD amount and currency.
 
 ## Verification and limitations

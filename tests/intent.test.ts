@@ -1,8 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { aiMode, interpretRequest, requestConstraints } from '../src/lib/intent';
+import { effectiveBudget, recommendBasket, type Intent } from '../src/lib/basket';
+import type { Category } from '../src/lib/catalog';
 import { apiError, assertSameOrigin, newSession, rateLimit, readBody, readSession } from '../src/lib/http';
 
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.useRealTimers(); });
+
+function geminiResponse(intent: Intent) {
+  return Response.json({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: JSON.stringify(intent) }] } }] });
+}
 
 describe('request intent', () => {
   it('uses sample travel categories when no key exists', async () => {
@@ -82,6 +88,97 @@ describe('request intent', () => {
     vi.stubEnv('GEMINI_API_KEY', 'controlled-test-key');
     vi.stubGlobal('fetch', async () => { throw new Error('network raw secret'); });
     await expect(interpretRequest('travel')).rejects.toThrow(/Gemini.*timed out/i);
+  });
+});
+
+describe('Gemini starter task scope', () => {
+  it.each<{
+    request: string; returned: Category[]; expected: Category[]; budgetCents: number; totalCents: number;
+  }>([
+    { request: 'A lightweight travel kit under $75, no leather', returned: ['bag', 'bottle', 'charger', 'notebook'], expected: ['bag', 'bottle', 'charger'], budgetCents: 7500, totalCents: 7400 },
+    { request: '  a   lightweight TRAVEL kit under $75, no leather  ', returned: ['bag', 'bottle', 'charger', 'notebook'], expected: ['bag', 'bottle', 'charger'], budgetCents: 7500, totalCents: 7400 },
+    { request: 'A notebook and lamp to refresh my desk under $65', returned: ['notebook', 'lamp', 'bag'], expected: ['notebook', 'lamp'], budgetCents: 6500, totalCents: 4300 },
+    { request: 'A thoughtful bottle and notebook gift under $40', returned: ['bottle', 'notebook', 'charger'], expected: ['bottle', 'notebook'], budgetCents: 4000, totalCents: 3200 },
+  ])('keeps the advertised starter basket for $request despite an unsolicited category', async ({ request, returned, expected, budgetCents, totalCents }) => {
+    vi.stubEnv('GEMINI_API_KEY', 'controlled-test-key');
+    vi.stubGlobal('fetch', async () => geminiResponse({ categories: returned, preferredProductIds: [], explanation: 'Suggested essentials.' }));
+
+    const intent = await interpretRequest(request);
+    const basket = recommendBasket(intent, budgetCents, { lightweight: true, leatherFree: true });
+
+    expect(basket.lines.map((line) => line.category)).toEqual(expected);
+    expect(basket.totalCents).toBe(totalCents);
+  });
+  it.each([
+    'A lightweight travel kit under $75, no leather.',
+    'A lightweight travel kit under $75, no leather!',
+    'A lightweight travel kit under $75, no leather?',
+  ])('recognizes sentence punctuation on the starter request %s', async (request) => {
+    vi.stubEnv('GEMINI_API_KEY', 'controlled-test-key');
+    vi.stubGlobal('fetch', async () => geminiResponse({ categories: ['bag', 'bottle', 'charger', 'notebook'], preferredProductIds: [], explanation: '' }));
+
+    expect(recommendBasket(await interpretRequest(request), 7500, { lightweight: true, leatherFree: true }).totalCents).toBe(7400);
+  });
+  it('keeps every starter category when a valid Gemini response omits an essential', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'controlled-test-key');
+    vi.stubGlobal('fetch', async () => geminiResponse({ categories: ['bag', 'bottle'], preferredProductIds: [], explanation: '' }));
+
+    const basket = recommendBasket(await interpretRequest('A lightweight travel kit under $75, no leather'), 7500, { lightweight: true, leatherFree: true });
+
+    expect(basket.lines.map((line) => line.productId)).toEqual(['daypack', 'steel-bottle', 'travel-charger']);
+    expect(basket.totalCents).toBe(7400);
+  });
+  it('preserves Gemini preferences within the starter categories', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'controlled-test-key');
+    vi.stubGlobal('fetch', async () => geminiResponse({ categories: ['notebook', 'lamp', 'bag'], preferredProductIds: ['desk-notebook', 'leather-bag'], explanation: '' }));
+
+    const intent = await interpretRequest('A notebook and lamp to refresh my desk under $65');
+    const basket = recommendBasket(intent, 6500, { lightweight: false, leatherFree: true });
+
+    expect(intent.preferredProductIds).toEqual(['desk-notebook']);
+    expect(basket.lines.map((line) => line.productId)).toEqual(['desk-notebook', 'task-lamp']);
+    expect(basket.totalCents).toBe(5000);
+  });
+  it.each([
+    'A lightweight travel kit under $75, no leather, plus a notebook',
+    'A lightweight travel kit with a notebook, no leather',
+  ])('retains an explicit additional category in custom request %s', async (request) => {
+    vi.stubEnv('GEMINI_API_KEY', 'controlled-test-key');
+    vi.stubGlobal('fetch', async () => geminiResponse({ categories: ['bag', 'bottle', 'charger', 'notebook'], preferredProductIds: [], explanation: '' }));
+
+    const intent = await interpretRequest(request);
+
+    expect(() => recommendBasket(intent, effectiveBudget(request, 7500), { lightweight: true, leatherFree: true })).toThrow(/\$83\.00/);
+    const affordableRequest = request.replace('under $75', 'under $83');
+    const basket = recommendBasket(await interpretRequest(affordableRequest), effectiveBudget(affordableRequest, 8300), { lightweight: true, leatherFree: true });
+    expect(basket.lines.map((line) => line.category)).toEqual(['bag', 'bottle', 'charger', 'notebook']);
+    expect(basket.totalCents).toBe(8300);
+  });
+  it('keeps custom negations outside the exact starter contract', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'controlled-test-key');
+    vi.stubGlobal('fetch', async () => geminiResponse({ categories: ['bottle', 'charger'], preferredProductIds: [], explanation: '' }));
+
+    const basket = recommendBasket(await interpretRequest('A lightweight travel kit under $75, no leather, no bag'), 7500, { lightweight: true, leatherFree: true });
+
+    expect(basket.lines.map((line) => line.category)).toEqual(['bottle', 'charger']);
+    expect(basket.totalCents).toBe(4700);
+  });
+  it('rejects a starter basket when its genuine minimum exceeds a reduced budget', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'controlled-test-key');
+    vi.stubGlobal('fetch', async () => geminiResponse({ categories: ['bag', 'bottle', 'charger', 'notebook'], preferredProductIds: [], explanation: '' }));
+
+    const intent = await interpretRequest('A lightweight travel kit under $75, no leather');
+
+    expect(() => recommendBasket(intent, 5000, { lightweight: true, leatherFree: true })).toThrow(/\$74\.00/);
+  });
+  it.each([
+    { status: 429, body: { error: 'provider failure' } },
+    { status: 200, body: { candidates: [{ finishReason: 'STOP', content: { parts: [{ text: '{broken' }] } }] } },
+  ])('does not replace failed or invalid Gemini responses with a starter basket %#', async ({ status, body }) => {
+    vi.stubEnv('GEMINI_API_KEY', 'controlled-test-key');
+    vi.stubGlobal('fetch', async () => Response.json(body, { status }));
+
+    await expect(interpretRequest('A lightweight travel kit under $75, no leather')).rejects.toThrow(/Gemini/);
   });
 });
 

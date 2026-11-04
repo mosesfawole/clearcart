@@ -9,6 +9,7 @@ import {
 import { catalog as sampleCatalog, type Product } from '../lib/catalog';
 import type { Basket, Constraints } from '../lib/basket';
 import type { Quote, Receipt } from '../lib/store';
+import { shoppingPresets } from '../lib/shopping-presets';
 
 type PublicQuote = Omit<Quote, 'sessionId'>;
 type Config = { aiMode: 'sample' | 'gemini'; paymentMode: 'sample' | 'sandbox'; model: string; catalog: Product[] };
@@ -17,16 +18,13 @@ type CheckoutResult = { orderId: string; mode: 'sample' | 'sandbox'; approvalUrl
 type Busy = 'loading' | 'recommend' | 'checkout' | 'capture' | null;
 type Collection = 'All' | 'Travel' | 'Desk' | 'Audio';
 
-const initialRequest = 'A lightweight travel kit under $75, no leather';
+const initialPreset = shoppingPresets[0];
+const initialRequest = initialPreset.request;
 const storageKey = 'clearcart-basket-v1';
 const dollars = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 const money = (cents: number) => dollars.format(cents / 100);
 const productIcons = { bag: ShoppingBag, bottle: Wine, charger: PlugZap, headphones: Headphones, notebook: BookOpen, lamp: LampDesk };
-const suggestions = [
-  { name: 'Travel light', request: initialRequest, budget: '75', lightweight: true, leatherFree: true },
-  { name: 'Desk refresh', request: 'A notebook and lamp to refresh my desk under $65', budget: '65', lightweight: false, leatherFree: true },
-  { name: 'A thoughtful gift', request: 'A thoughtful bottle and notebook gift under $40', budget: '40', lightweight: false, leatherFree: true },
-];
+const suggestions = shoppingPresets;
 
 async function api<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(`/api/${path}`, {
@@ -85,9 +83,9 @@ function BasketLines({ lines, products }: { lines: Basket['lines']; products: Pr
 
 export default function Home() {
   const [config, setConfig] = useState<Config | null>(null);
-  const [request, setRequest] = useState(initialRequest);
-  const [budget, setBudget] = useState('75');
-  const [constraints, setConstraints] = useState<Constraints>({ lightweight: true, leatherFree: true });
+  const [request, setRequest] = useState<string>(initialRequest);
+  const [budget, setBudget] = useState<string>(initialPreset.budget);
+  const [constraints, setConstraints] = useState<Constraints>({ lightweight: initialPreset.lightweight, leatherFree: initialPreset.leatherFree });
   const [collection, setCollection] = useState<Collection>('All');
   const [quote, setQuote] = useState<PublicQuote | null>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
@@ -224,7 +222,7 @@ export default function Home() {
   function resetBasket() {
     if (operationActive.current) return;
     setQuote(null); setReceipt(null); setError(''); setSampleOrder(null); setCallback(null);
-    setRequest(initialRequest); setBudget('75'); setConstraints({ lightweight: true, leatherFree: true });
+    setRequest(initialRequest); setBudget(initialPreset.budget); setConstraints({ lightweight: initialPreset.lightweight, leatherFree: initialPreset.leatherFree });
     try { sessionStorage.removeItem(storageKey); } catch { /* Optional storage. */ }
     clearCallbackUrl(); setStatus('Ready for your next basket.'); textarea.current?.focus();
   }

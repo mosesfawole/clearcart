@@ -42,6 +42,8 @@ The production build does not require credentials. Server-side provider configur
 
 Quotes expire after 15 minutes. Keep approval and return in the same browser and tab, with cookies available. Opening an old checkout in another browser/device or clearing its cookie intentionally prevents access to the original owner's order. If verification encounters a transient provider/network error, use **Retry verification** for the same order.
 
+The three exact starter requests use shared category lists: travel includes a bag, bottle and charger; desk includes a notebook and lamp; gift includes a bottle and notebook. In Gemini mode, successful model output supplies product preferences within that starter scope. Editing the request to ask for extra items uses the custom interpretation; those extra categories must also fit the complete budget. The app never removes a custom requested category merely to make a basket affordable.
+
 ## Genuine Gemini and PayPal sandbox
 
 [Provider setup](provider-setup.md) explains obtaining a free Gemini key and a PayPal sandbox merchant app. Leave paid Gemini billing disabled; the model must be available within your own project's free quota. Gemini receives the public fictional catalog and request text. Do not enter personal/payment details in that request; Google lists free-tier data as used to improve its products.
